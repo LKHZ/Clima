@@ -6,6 +6,7 @@
 //  Copyright © 2019 App Brewery. All rights reserved.
 //
 import UIKit
+import CoreLocation
 
 class WeatherViewController: UIViewController {
     @IBOutlet weak var conditionImageView: UIImageView!
@@ -14,11 +15,23 @@ class WeatherViewController: UIViewController {
     @IBOutlet weak var searchTextField: UITextField!
     
     var weatherManager = WeatherManager()
+    let locationManager = CLLocationManager()
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // requestLocation()을 호출하기 전에 delegate를 지정해야한다.
+        locationManager.delegate = self
+        locationManager.requestWhenInUseAuthorization()
+        // 현재 장소를 계속 모니터링하려면 locationManager.startUpdatingLocation() 호출
+        locationManager.requestLocation()
+        
         weatherManager.delegate = self
         searchTextField.delegate = self
+    }
+    
+    @IBAction func compassPressed(_ sender: UIButton) {
+        locationManager.requestLocation()
     }
 }
 
@@ -70,6 +83,23 @@ extension WeatherViewController: WeatherManagerDelegate {
     }
     
     func didFailWithError(error: Error) {
+        print(error)
+    }
+}
+
+// MARK: - CLLocationManagerDelegate
+extension WeatherViewController: CLLocationManagerDelegate {
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        // location을 여러번 얻기때문에 가장 마지막걸 꺼내오면 가장 정확한 location을 얻을 수 있다.
+        if let location = locations.last {
+            locationManager.stopUpdatingLocation()
+            let lat = location.coordinate.latitude
+            let lon = location.coordinate.longitude
+            weatherManager.fetchWeather(latitude: lat, longitude: lon)
+        }
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         print(error)
     }
 }
