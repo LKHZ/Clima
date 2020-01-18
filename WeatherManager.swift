@@ -31,21 +31,27 @@ struct WeatherManager {
             // task 할당
             // sesson이 생성되고 task가 끝나면 completionHandler를 callback
             let task = session.dataTask(with: url) { (data, response, error) in
-                
                 if error != nil {
                     print(error!)
                     return
                 }
-                
                 if let safeData = data {
-                    let dataString = String(data: safeData, encoding: .utf8)
-                    print(dataString)
+                    self.parseJSON(weatherData: safeData)
                 }
             }
             
             // task 실행
             task.resume()
         }
-        
+    }
+    
+    func parseJSON(weatherData: Data) {
+        let decoder = JSONDecoder()
+        do {
+            let decodedData = try decoder.decode(WeatherData.self, from: weatherData)
+            print(decodedData.weather[0].description)
+        } catch {
+            print(error)
+        }
     }
 }
