@@ -7,8 +7,7 @@
 //
 import UIKit
 
-class WeatherViewController: UIViewController, UITextFieldDelegate {
-
+class WeatherViewController: UIViewController, UITextFieldDelegate, WeatherManagerDelegate {
     @IBOutlet weak var conditionImageView: UIImageView!
     @IBOutlet weak var temperatureLabel: UILabel!
     @IBOutlet weak var cityLabel: UILabel!
@@ -18,7 +17,7 @@ class WeatherViewController: UIViewController, UITextFieldDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        weatherManager.delegate = self
         searchTextField.delegate = self
     }
     
@@ -51,6 +50,20 @@ class WeatherViewController: UIViewController, UITextFieldDelegate {
             weatherManager.fetchWeather(cityName: city)
         }
         searchTextField.text = ""
+    }
+    
+    // weahter 데이터를 무사히 받아왔을 때 호출되는 메서드
+    func didUpdateWeather(_ weatherManger: WeatherManager, weather: WeatherModel) {
+        // trailing closure
+        DispatchQueue.main.async {
+            self.temperatureLabel.text = weather.temperatureString
+            self.cityLabel.text = weather.cityName
+            self.conditionImageView.image = UIImage(systemName: weather.conditionName)
+        }
+    }
+    
+    func didFailWithError(error: Error) {
+        print(error)
     }
 }
 
